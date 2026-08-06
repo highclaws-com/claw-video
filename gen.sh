@@ -1,15 +1,18 @@
 set -ex
+OUTPUT_DIR=./output
+mkdir -p $OUTPUT_DIR
 
 pushd qwen-tts
-CUDA_VISIBLE_DEVICES=3 python clone.py --text_file input-long.txt --ref_audio ref.mp3 --ref_text ref.txt --language Chinese
+CUDA_VISIBLE_DEVICES=2 python clone.py \
+	--text_file input-long.txt --language Chinese \
+	--ref_audio ref.mp3 --ref_text ref.txt \
+	--output $OUTPUT_DIR/speech.wav
 popd
 
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/LongCat-Video-Avatar-1.5
-OUTPUT_DIR=./output
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 
-mkdir -p $OUTPUT_DIR
 python longcat-video-avatar/run_demo_avatar_single_low_vram.py prepare \
 	--input_json ./avatar-input.json --checkpoint_dir "$CHECKPOINT_DIR" \
 	--cache_path $OUTPUT_DIR/inputs.pt

@@ -1,4 +1,5 @@
 import argparse
+import os
 import torch
 import soundfile as sf
 import numpy as np
@@ -43,11 +44,12 @@ def main():
     parser.add_argument(
         "--output",
         type=str,
-        default="output_clone.wav",
+        default="./output_clone.wav",
         help="Path to save the generated output audio file"
     )
 
     args = parser.parse_args()
+    output_dir = os.path.dirname(args.output)
 
     with open(args.text_file, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f if line.strip()]
@@ -68,11 +70,16 @@ def main():
             language=args.language,
             ref_audio=args.ref_audio,
             ref_text=args.ref_text,
-            x_vector_only_mode=False,
+            x_vector_only_mode=not bool(args.ref_text),
             max_new_tokens=512,
         )
         all_wavs.append(wavs[0])
         sr = sample_rate
+
+        # Save preview for the chunk respecting the output directory
+        chunk_filename = os.path.join(output_dir, f"chunk_{i+1:03d}.wav")
+        sf.write(chunk_filename, wavs[0], sr)
+        print(f"-> Saved preview chunk to {chunk_filename}")
 
     if all_wavs:
         final_wav = np.concatenate(all_wavs)
