@@ -44,6 +44,7 @@ else
 		--max_duration 12.0
 fi
 
+set +e
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-1.5
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
