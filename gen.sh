@@ -49,7 +49,7 @@ CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 
-# Read the initial image from the template
+# Always use the original high-quality avatar for every chunk to prevent style drift
 PREV_LAST_FRAME=$(jq -r .cond_image avatar-input.json)
 
 # Loop through all audio chunks
@@ -115,10 +115,11 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 		popd
 	fi
 
-	# Extract the last frame to use as the cond_image for the next chunk (use relative path)
-	PREV_LAST_FRAME="./output/${CHUNK_BASENAME}_last_frame.png"
-	if [ ! -f "$PREV_LAST_FRAME" ]; then
-		echo "Extracting last frame from $CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4"
-		ffmpeg -y -sseof -1 -i "$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4" -update 1 -q:v 1 "$PREV_LAST_FRAME"
-	fi
+	# [OPTIONAL] Extract the last frame to use as the cond_image for the next chunk
+	# To enable continuous motion instead of resetting to the original avatar, uncomment the following lines:
+	# PREV_LAST_FRAME="./output/${CHUNK_BASENAME}_last_frame.png"
+	# if [ ! -f "$PREV_LAST_FRAME" ]; then
+	# 	echo "Extracting last frame from $CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4"
+	# 	ffmpeg -y -sseof -1 -i "$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4" -update 1 -q:v 1 "$PREV_LAST_FRAME"
+	# fi
 done
