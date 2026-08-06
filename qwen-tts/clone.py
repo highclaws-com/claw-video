@@ -4,46 +4,53 @@ import soundfile as sf
 import numpy as np
 from qwen_tts import Qwen3TTSModel
 
+
 def main():
     parser = argparse.ArgumentParser(description="Voice Cloning with Qwen3-TTS Base")
-    
+
     parser.add_argument(
-        "--text_file", 
-        type=str, 
-        required=True, 
+        "--text_file",
+        type=str,
+        required=True,
         help="Path to the input text file"
     )
-    
+
     parser.add_argument(
-        "--ref_audio", 
-        type=str, 
-        default="ref.wav", 
+        "--ref_audio",
+        type=str,
+        default="ref.wav",
         help="Path to your reference audio file"
     )
-    
+
     parser.add_argument(
-        "--ref_text", 
-        type=str, 
-        default=None, 
+        "--ref_text",
+        type=str,
+        default=None,
         help="Text of the reference audio (required for full voice cloning)"
     )
-    
+
     parser.add_argument(
-        "--language", 
-        type=str, 
-        default="English", 
+        "--language",
+        type=str,
+        default="English",
         choices=[
-            "Chinese", "English", "Japanese", "Korean", "German", 
+            "Chinese", "English", "Japanese", "Korean", "German",
             "French", "Russian", "Portuguese", "Spanish", "Italian"
-        ], 
+        ],
         help="Target language for generation"
     )
-    
+
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="output_clone.wav",
+        help="Path to save the generated output audio file"
+    )
+
     args = parser.parse_args()
 
     with open(args.text_file, 'r', encoding='utf-8') as f:
         lines = [line.strip() for line in f if line.strip()]
-
     print("Resuming download of the Base model...")
     model = Qwen3TTSModel.from_pretrained(
         "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
@@ -51,10 +58,11 @@ def main():
         device_map="cuda:0",
         dtype=torch.bfloat16,
     )
-    
+
     all_wavs = []
     sr = None
-    for line in lines:
+    for i, line in enumerate(lines):
+        print(f"[{i+1}/{len(lines)}] Generating TTS for: {line}")
         wavs, sample_rate = model.generate_voice_clone(
             text=line,
             language=args.language,
@@ -64,13 +72,14 @@ def main():
         )
         all_wavs.append(wavs[0])
         sr = sample_rate
-        
+
     if all_wavs:
         final_wav = np.concatenate(all_wavs)
-        sf.write("output_clone.wav", final_wav, sr)
-        print("Successfully cloned voice and saved to output_clone.wav!")
+        sf.write(args.output, final_wav, sr)
+        print(f"Successfully cloned voice and saved to {args.output}!")
     else:
         print("No valid text found to generate voice.")
+
 
 if __name__ == "__main__":
     main()
