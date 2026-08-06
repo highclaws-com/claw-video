@@ -55,7 +55,7 @@ def main():
     model = Qwen3TTSModel.from_pretrained(
         "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
         revision="fd4b254389122332181a7c3db7f27e918eec64e3",
-        device_map="cuda:0",
+        device_map="auto",
         dtype=torch.bfloat16,
     )
 
@@ -69,6 +69,7 @@ def main():
             ref_audio=args.ref_audio,
             ref_text=args.ref_text,
             x_vector_only_mode=False,
+            max_new_tokens=512,
         )
         all_wavs.append(wavs[0])
         sr = sample_rate

@@ -3,7 +3,6 @@ set -ex
 pushd qwen-tts
 CUDA_VISIBLE_DEVICES=3 python clone.py --text_file input-long.txt --ref_audio ref.mp3 --ref_text ref.txt --language Chinese
 popd
-exit
 
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/LongCat-Video-Avatar-1.5
 OUTPUT_DIR=./output
