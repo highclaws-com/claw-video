@@ -123,3 +123,13 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 	# 	ffmpeg -y -sseof -1 -i "$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4" -update 1 -q:v 1 "$PREV_LAST_FRAME"
 	# fi
 done
+
+echo "=========================================="
+echo "Concatenating all chunks into final video"
+echo "=========================================="
+pushd "$OUTPUT_DIR"
+printf "file '%s'\n" smart_chunk_*_out/ai2v_demo_1_low_vram.mp4 > concat_list.txt
+ffmpeg -y -f concat -safe 0 -i concat_list.txt -c copy final_video.mp4
+popd
+
+echo "Done! The final video is at $OUTPUT_DIR/final_video.mp4"
