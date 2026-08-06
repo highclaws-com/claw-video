@@ -28,6 +28,14 @@ python whisper-asr/extract_srt.py \
 	--output_file output/speech.srt \
 	--language zh
 
+# Split the normalized speech based on SRT timeline
+python whisper-asr/split_wav_by_srt.py \
+	--audio output/speech-norm.wav \
+	--srt output/speech.srt \
+	--out_dir output \
+	--min_duration 5.0 \
+	--max_duration 12.0
+
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-1.5
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
@@ -36,8 +44,8 @@ export CUDA_DEVICE_ORDER=PCI_BUS_ID
 PREV_LAST_FRAME=$(jq -r .cond_image avatar-input.json)
 
 # Loop through all audio chunks
-for CHUNK_FILE in "$OUTPUT_DIR"/chunk_*.wav; do
-	# Extract the chunk name (e.g., chunk_001)
+for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
+	# Extract the chunk name (e.g., smart_chunk_001)
 	CHUNK_BASENAME=$(basename "$CHUNK_FILE" .wav)
 
 	# Paths for this chunk
