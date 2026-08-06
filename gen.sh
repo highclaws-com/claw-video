@@ -23,18 +23,26 @@ else
 fi
 
 # ASR a .srt timeline
-python whisper-asr/extract_srt.py \
-	--audio output/speech-norm.wav \
-	--output_file output/speech.srt \
-	--language zh
+if [ -f "$OUTPUT_DIR/speech.srt" ]; then
+	echo "Skip ASR: speech.srt already exists"
+else
+	python whisper-asr/extract_srt.py \
+		--audio output/speech-norm.wav \
+		--output_file output/speech.srt \
+		--language zh
+fi
 
 # Split the normalized speech based on SRT timeline
-python whisper-asr/split_wav_by_srt.py \
-	--audio output/speech-norm.wav \
-	--srt output/speech.srt \
-	--out_dir output \
-	--min_duration 5.0 \
-	--max_duration 12.0
+if ls "$OUTPUT_DIR"/smart_chunk_*.wav 1> /dev/null 2>&1; then
+	echo "Skip split: smart_chunk files already exist"
+else
+	python whisper-asr/split_wav_by_srt.py \
+		--audio output/speech-norm.wav \
+		--srt output/speech.srt \
+		--out_dir output \
+		--min_duration 5.0 \
+		--max_duration 12.0
+fi
 
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-1.5
 GPUS=0,1,3,4
