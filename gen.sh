@@ -1,5 +1,5 @@
 set -ex
-OUTPUT_DIR=./output
+OUTPUT_DIR=`pwd`/output
 mkdir -p $OUTPUT_DIR
 
 pushd qwen-tts
