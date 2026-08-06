@@ -26,6 +26,9 @@ CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 
+# Read the initial image from the template
+PREV_LAST_FRAME=$(jq -r .cond_image avatar-input.json)
+
 # Loop through all audio chunks
 for CHUNK_FILE in "$OUTPUT_DIR"/chunk_*.wav; do
 	# Extract the chunk name (e.g., chunk_001)
@@ -42,8 +45,10 @@ for CHUNK_FILE in "$OUTPUT_DIR"/chunk_*.wav; do
 	echo "=========================================="
 
 	# Generate JSON for this chunk using the template
-	# Replacing __CHUNK__ with the absolute path to the audio chunk
-	sed "s|__CHUNK__|$CHUNK_FILE|g" ./avatar-input.json > "$CHUNK_JSON"
+	# Use jq to update the JSON template cleanly
+	jq --arg audio "$CHUNK_FILE" --arg img "$PREV_LAST_FRAME" \
+		'.cond_audio.person1 = $audio | .cond_image = $img' \
+		./avatar-input.json > "$CHUNK_JSON"
 
 	# Prepare
 	if [ -f "$CHUNK_INPUTS_PATH" ]; then
@@ -70,7 +75,7 @@ for CHUNK_FILE in "$OUTPUT_DIR"/chunk_*.wav; do
 		--dit_subfolder base_model_int8_dmd_merged \
 		--text_guidance_scale 2.0 \
 		--sequential_block_cpu_offload \
-		--block_offload_group_size 16
+		--block_offload_group_size 1
 		popd
 	fi
 
@@ -85,5 +90,12 @@ for CHUNK_FILE in "$OUTPUT_DIR"/chunk_*.wav; do
 		--latent_path "$CHUNK_LATENT_PATH" \
 		--output_dir "$CHUNK_OUT_DIR"
 		popd
+	fi
+
+	# Extract the last frame to use as the cond_image for the next chunk (use relative path)
+	PREV_LAST_FRAME="./output/${CHUNK_BASENAME}_last_frame.png"
+	if [ ! -f "$PREV_LAST_FRAME" ]; then
+		echo "Extracting last frame from $CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4"
+		ffmpeg -y -sseof -1 -i "$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4" -update 1 -q:v 1 "$PREV_LAST_FRAME"
 	fi
 done
