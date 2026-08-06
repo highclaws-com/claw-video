@@ -1,0 +1,8 @@
+{
+    "prompt": "An adorable chubby orange cartoon lobster hosts a cheerful livestream at a cozy desk, speaking sweetly into the black studio microphone while looking at the camera. Its mouth moves naturally in sync with the speech. It blinks, smiles, makes cute facial expressions, gently bobs its head, and softly sways its long antennae. Its oversized claws are very heavy and the lazy little lobster keeps them resting on the desk. The claws only shift a tiny amount occasionally and never make any large movement. The laptop, microphone, desk, camera, and background remain completely stable.",
+    "negative_prompt": "large claw movement, raised claws, waving claws, tapping or hitting the laptop, moving laptop, violent motion, angry behavior, stiff face, no blinking, deformed face, extra limbs, extra claws, warped body, camera shake, unstable background",
+    "cond_image": "./avatar-claw.png",
+    "cond_audio": {
+        "person1": "./qwen-tts/output_clone.wav"
+    }
+}
