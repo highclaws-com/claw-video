@@ -1,0 +1,76 @@
+import argparse
+import torch
+import soundfile as sf
+import numpy as np
+from qwen_tts import Qwen3TTSModel
+
+def main():
+    parser = argparse.ArgumentParser(description="Voice Cloning with Qwen3-TTS Base")
+    
+    parser.add_argument(
+        "--text_file", 
+        type=str, 
+        required=True, 
+        help="Path to the input text file"
+    )
+    
+    parser.add_argument(
+        "--ref_audio", 
+        type=str, 
+        default="ref.wav", 
+        help="Path to your reference audio file"
+    )
+    
+    parser.add_argument(
+        "--ref_text", 
+        type=str, 
+        default=None, 
+        help="Text of the reference audio (required for full voice cloning)"
+    )
+    
+    parser.add_argument(
+        "--language", 
+        type=str, 
+        default="English", 
+        choices=[
+            "Chinese", "English", "Japanese", "Korean", "German", 
+            "French", "Russian", "Portuguese", "Spanish", "Italian"
+        ], 
+        help="Target language for generation"
+    )
+    
+    args = parser.parse_args()
+
+    with open(args.text_file, 'r', encoding='utf-8') as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    print("Resuming download of the Base model...")
+    model = Qwen3TTSModel.from_pretrained(
+        "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
+        revision="fd4b254389122332181a7c3db7f27e918eec64e3",
+        device_map="cuda:0",
+        dtype=torch.bfloat16,
+    )
+    
+    all_wavs = []
+    sr = None
+    for line in lines:
+        wavs, sample_rate = model.generate_voice_clone(
+            text=line,
+            language=args.language,
+            ref_audio=args.ref_audio,
+            ref_text=args.ref_text,
+            x_vector_only_mode=False,
+        )
+        all_wavs.append(wavs[0])
+        sr = sample_rate
+        
+    if all_wavs:
+        final_wav = np.concatenate(all_wavs)
+        sf.write("output_clone.wav", final_wav, sr)
+        print("Successfully cloned voice and saved to output_clone.wav!")
+    else:
+        print("No valid text found to generate voice.")
+
+if __name__ == "__main__":
+    main()
