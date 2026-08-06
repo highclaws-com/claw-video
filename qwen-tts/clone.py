@@ -57,9 +57,22 @@ def main():
     model = Qwen3TTSModel.from_pretrained(
         "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
         revision="fd4b254389122332181a7c3db7f27e918eec64e3",
-        device_map="auto",
+        device_map="cuda:0",
         dtype=torch.bfloat16,
     )
+
+    # Pre-compute voice clone prompt once to avoid re-encoding ref audio every chunk
+    ref_text = None
+    if args.ref_text:
+        with open(args.ref_text, 'r', encoding='utf-8') as f:
+            ref_text = f.read().strip()
+    print("Pre-computing voice clone prompt from reference audio...")
+    voice_clone_prompt = model.create_voice_clone_prompt(
+        ref_audio=args.ref_audio,
+        ref_text=ref_text,
+        x_vector_only_mode=not bool(ref_text),
+    )
+    print("Voice clone prompt ready.")
 
     all_wavs = []
     sr = None
@@ -68,10 +81,7 @@ def main():
         wavs, sample_rate = model.generate_voice_clone(
             text=line,
             language=args.language,
-            ref_audio=args.ref_audio,
-            ref_text=args.ref_text,
-            x_vector_only_mode=not bool(args.ref_text),
-            max_new_tokens=512,
+            voice_clone_prompt=voice_clone_prompt,
         )
         all_wavs.append(wavs[0])
         sr = sample_rate
