@@ -22,6 +22,12 @@ else
 	echo "Normalized -> speech-norm.wav"
 fi
 
+# ASR a .srt timeline
+python whisper-asr/extract_srt.py \
+	--audio output/speech-norm.wav \
+	--output_file output/speech.srt \
+	--language zh
+
 CHECKPOINT_DIR=/mnt/asus_card/hfdownloader/meituan-longcat/LongCat-Video-Avatar-1.5
 GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
