@@ -77,6 +77,14 @@ def main():
     all_wavs = []
     sr = None
     for i, line in enumerate(lines):
+        chunk_filename = os.path.join(output_dir, f"chunk_{i+1:03d}.wav")
+        if os.path.exists(chunk_filename):
+            print(f"[{i+1}/{len(lines)}] Chunk already exists, skipping TTS for: {line}")
+            wav_data, sample_rate = sf.read(chunk_filename)
+            all_wavs.append(wav_data)
+            sr = sample_rate
+            continue
+
         print(f"[{i+1}/{len(lines)}] Generating TTS for: {line}")
         wavs, sample_rate = model.generate_voice_clone(
             text=line,
@@ -87,7 +95,6 @@ def main():
         sr = sample_rate
 
         # Save preview for the chunk respecting the output directory
-        chunk_filename = os.path.join(output_dir, f"chunk_{i+1:03d}.wav")
         sf.write(chunk_filename, wavs[0], sr)
         print(f"-> Saved preview chunk to {chunk_filename}")
 
