@@ -22,22 +22,31 @@ else
 	echo "Normalized -> speech-norm.wav"
 fi
 
+# Boost volume after normalization
+AUDIO_VOLUME=${AUDIO_VOLUME:-3.0}
+if [ -f "$OUTPUT_DIR/speech-loud.wav" ]; then
+	echo "Skip volume boost: speech-loud.wav already exists"
+else
+	ffmpeg -y -i "$OUTPUT_DIR/speech-norm.wav" -af "volume=$AUDIO_VOLUME" "$OUTPUT_DIR/speech-loud.wav"
+	echo "Volume boosted (${AUDIO_VOLUME}x) -> speech-loud.wav"
+fi
+
 # ASR a .srt timeline
 if [ -f "$OUTPUT_DIR/speech.srt" ]; then
 	echo "Skip ASR: speech.srt already exists"
 else
 	python whisper-asr/extract_srt.py \
-		--audio output/speech-norm.wav \
+		--audio output/speech-loud.wav \
 		--output_file output/speech.srt \
 		--language zh
 fi
 
-# Split the normalized speech based on SRT timeline
+# Split the normalized and boosted speech based on SRT timeline
 if ls "$OUTPUT_DIR"/smart_chunk_*.wav 1> /dev/null 2>&1; then
 	echo "Skip split: smart_chunk files already exist"
 else
 	python whisper-asr/split_wav_by_srt.py \
-		--audio output/speech-norm.wav \
+		--audio output/speech-loud.wav \
 		--srt output/speech.srt \
 		--out_dir output \
 		--min_duration 5.0 \
