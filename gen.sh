@@ -1,24 +1,24 @@
 set -e
 
-if [ "$#" -lt 1 ]; then
-	echo "Usage: $0 <avatar-input.json>" >&2
+if [ "$#" -ne 3 ]; then
+	echo "Usage: $0 <avatar-input.json> <reference.mp3> <reference.txt>"
 	exit 2
 fi
 
 AVATAR_INPUT_JSON="$1"
-OUTPUT_DIR=`pwd`/output
-mkdir -p $OUTPUT_DIR
+TTS_REF_AUDIO="$2"
+TTS_REF_TEXT="$3"
+OUTPUT_DIR=$(pwd)/output
+mkdir -p "$OUTPUT_DIR"
 
 # TTS
 if [ -f "$OUTPUT_DIR/speech.wav" ]; then
 	echo "Skip TTS: speech.wav already exists"
 else
-	pushd qwen-tts
-	CUDA_VISIBLE_DEVICES=2 python clone.py \
-	--text_file input-long.txt --language Chinese \
-	--ref_audio ref.mp3 --ref_text ref.txt \
-	--output $OUTPUT_DIR/speech.wav
-	popd
+	CUDA_VISIBLE_DEVICES=2 python qwen-tts/clone.py \
+	--text_file qwen-tts/input-long.txt --language Chinese \
+	--ref_audio "$TTS_REF_AUDIO" --ref_text "$TTS_REF_TEXT" \
+	--output "$OUTPUT_DIR/speech.wav"
 fi
 
 # Normalize loudness

@@ -90,6 +90,7 @@ def main():
             text=line,
             language=args.language,
             voice_clone_prompt=voice_clone_prompt,
+            max_new_tokens=2048,
         )
         all_wavs.append(wavs[0])
         sr = sample_rate
