@@ -1,4 +1,11 @@
 set -e
+
+if [ "$#" -lt 1 ]; then
+	echo "Usage: $0 <avatar-input.json>" >&2
+	exit 2
+fi
+
+AVATAR_INPUT_JSON="$1"
 OUTPUT_DIR=`pwd`/output
 mkdir -p $OUTPUT_DIR
 
@@ -59,7 +66,7 @@ GPUS=0,1,3,4
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 
 # Always use the original high-quality avatar for every chunk to prevent style drift
-PREV_LAST_FRAME=$(jq -r .cond_image avatar-input.json)
+PREV_LAST_FRAME=$(jq -r .cond_image "$AVATAR_INPUT_JSON")
 
 # Loop through all audio chunks
 for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
@@ -80,7 +87,7 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 	# Use jq to update the JSON template cleanly
 	jq --arg audio "$CHUNK_FILE" --arg img "$PREV_LAST_FRAME" \
 		'.cond_audio.person1 = $audio | .cond_image = $img' \
-		./avatar-input.json > "$CHUNK_JSON"
+		"$AVATAR_INPUT_JSON" > "$CHUNK_JSON"
 
 	# Prepare
 	if [ -f "$CHUNK_INPUTS_PATH" ]; then
