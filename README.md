@@ -20,13 +20,6 @@ Extract an MP3 audio track from a video:
 ffmpeg -i input.mp4 -vn output.mp3
 ```
 
-Install the ClearerVoice dependencies:
-
-```bash
-cd clearer-voice
-pip install -r requirements.txt
-```
-
 Place the model checkpoint at:
 
 ```text
@@ -35,11 +28,12 @@ clearer-voice/checkpoints/MossFormer2_SE_48K/
 └── last_best_checkpoint.pt
 ```
 
-The checkpoint path is relative to the current working directory, so run the
-CLI from the `clearer-voice` directory:
+The checkpoint path is relative to the current working directory. Install the
+dependencies and run the CLI from the `clearer-voice` directory:
 
 ```bash
 cd clearer-voice
+pip install -r requirements.txt
 python cli.py /path/to/input.mp3 /path/to/output.mp3
 ```
 
