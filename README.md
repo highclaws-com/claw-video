@@ -3,6 +3,7 @@
 Pass the avatar JSON, TTS reference audio, and its transcript:
 
 ```bash
+rm -rf ./output
 ./gen.sh avatar-taishoh.json qwen-tts/ref.mp3 qwen-tts/ref.txt
 ```
 
