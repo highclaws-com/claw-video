@@ -12,6 +12,37 @@ To produce a final video:
 - Use uxplay to cast phone recording
 - Use Kdenlive to edit and cut video
 
+## Extract and denoise audio
+
+Extract an MP3 audio track from a video:
+
+```bash
+ffmpeg -i input.mp4 -vn output.mp3
+```
+
+Install the ClearerVoice dependencies:
+
+```bash
+cd clearer-voice
+pip install -r requirements.txt
+```
+
+Place the model checkpoint at:
+
+```text
+clearer-voice/checkpoints/MossFormer2_SE_48K/
+├── last_best_checkpoint
+└── last_best_checkpoint.pt
+```
+
+The checkpoint path is relative to the current working directory, so run the
+CLI from the `clearer-voice` directory:
+
+```bash
+cd clearer-voice
+python cli.py /path/to/input.mp3 /path/to/output.mp3
+```
+
 ## SSHFS mount
 
 ```bash
