@@ -1,3 +1,6 @@
 [submodule "longcat-video-avatar"]
 	path = longcat-video-avatar
 	url = git@github.com:w32zhong/LongCat-Video-Avatar-fork.git
+[submodule "clearer-voice"]
+	path = clearer-voice
+	url = git@github.com:w32zhong/ClearerVoice-Studio-fork.git
