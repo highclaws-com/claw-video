@@ -52,7 +52,8 @@ def main():
     output_dir = os.path.dirname(args.output)
 
     with open(args.text_file, 'r', encoding='utf-8') as f:
-        lines = [line.strip() for line in f if line.strip()]
+        text = f.read().strip()
+    lines = [chunk.strip() for chunk in text.split('\n\n') if chunk.strip()]
     print("Resuming download of the Base model...")
     model = Qwen3TTSModel.from_pretrained(
         "Qwen/Qwen3-TTS-12Hz-1.7B-Base",
