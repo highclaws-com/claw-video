@@ -78,10 +78,17 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 	CHUNK_INPUTS_PATH="$OUTPUT_DIR/${CHUNK_BASENAME}_inputs.pt"
 	CHUNK_LATENT_PATH="$OUTPUT_DIR/${CHUNK_BASENAME}_latent.pt"
 	CHUNK_OUT_DIR="$OUTPUT_DIR/${CHUNK_BASENAME}_out"
+	CHUNK_VIDEO_PATH="$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4"
 
 	echo "=========================================="
 	echo "Processing $CHUNK_BASENAME"
 	echo "=========================================="
+
+	# The final video is the single source of truth for chunk completion.
+	if [ -f "$CHUNK_VIDEO_PATH" ]; then
+		echo "Skip chunk: $CHUNK_VIDEO_PATH already exists"
+		continue
+	fi
 
 	# Generate JSON for this chunk using the template
 	# Use jq to update the JSON template cleanly
@@ -90,46 +97,34 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 		"$AVATAR_INPUT_JSON" > "$CHUNK_JSON"
 
 	# Prepare
-	if [ -f "$CHUNK_INPUTS_PATH" ]; then
-		echo "Skip prepare: $CHUNK_INPUTS_PATH already exists"
-	else
-		CUDA_VISIBLE_DEVICES="$GPUS" \
-		python longcat-video-avatar/run_demo_avatar_single_low_vram.py prepare \
-		--input_json "$CHUNK_JSON" --checkpoint_dir "$CHECKPOINT_DIR" \
-		--cache_path "$CHUNK_INPUTS_PATH"
-	fi
+	CUDA_VISIBLE_DEVICES="$GPUS" \
+	python longcat-video-avatar/run_demo_avatar_single_low_vram.py prepare \
+	--input_json "$CHUNK_JSON" --checkpoint_dir "$CHECKPOINT_DIR" \
+	--cache_path "$CHUNK_INPUTS_PATH"
 
 	# Denoise
-	if [ -f "$CHUNK_LATENT_PATH" ]; then
-		echo "Skip denoise: $CHUNK_LATENT_PATH already exists"
-	else
-		pushd longcat-video-avatar
-		CUDA_VISIBLE_DEVICES="$GPUS" PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-		OMP_NUM_THREADS=1 python -m torch.distributed.run --standalone --nproc_per_node=4 \
-		run_demo_avatar_single_low_vram.py denoise \
-		--checkpoint_dir "$CHECKPOINT_DIR" \
-		--cache_path "$CHUNK_INPUTS_PATH" \
-		--latent_path "$CHUNK_LATENT_PATH" \
-		--context_parallel_size 4 \
-		--dit_subfolder base_model_int8_dmd_merged \
-		--text_guidance_scale 2.0 \
-		--sequential_block_cpu_offload \
-		--block_offload_group_size 1
-		popd
-	fi
+	pushd longcat-video-avatar
+	CUDA_VISIBLE_DEVICES="$GPUS" PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+	OMP_NUM_THREADS=1 python -m torch.distributed.run --standalone --nproc_per_node=4 \
+	run_demo_avatar_single_low_vram.py denoise \
+	--checkpoint_dir "$CHECKPOINT_DIR" \
+	--cache_path "$CHUNK_INPUTS_PATH" \
+	--latent_path "$CHUNK_LATENT_PATH" \
+	--context_parallel_size 4 \
+	--dit_subfolder base_model_int8_dmd_merged \
+	--text_guidance_scale 2.0 \
+	--sequential_block_cpu_offload \
+	--block_offload_group_size 1
+	popd
 
 	# Decode
-	if [ -f "$CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4" ]; then
-		echo "Skip decode: $CHUNK_OUT_DIR/ai2v_demo_1_low_vram.mp4 already exists"
-	else
-		pushd longcat-video-avatar
-		CUDA_VISIBLE_DEVICES=4 python run_demo_avatar_single_low_vram.py decode \
-		--checkpoint_dir "$CHECKPOINT_DIR" \
-		--cache_path "$CHUNK_INPUTS_PATH" \
-		--latent_path "$CHUNK_LATENT_PATH" \
-		--output_dir "$CHUNK_OUT_DIR"
-		popd
-	fi
+	pushd longcat-video-avatar
+	CUDA_VISIBLE_DEVICES=4 python run_demo_avatar_single_low_vram.py decode \
+	--checkpoint_dir "$CHECKPOINT_DIR" \
+	--cache_path "$CHUNK_INPUTS_PATH" \
+	--latent_path "$CHUNK_LATENT_PATH" \
+	--output_dir "$CHUNK_OUT_DIR"
+	popd
 
 	# [OPTIONAL] Extract the last frame to use as the cond_image for the next chunk
 	# To enable continuous motion instead of resetting to the original avatar, uncomment the following lines:
