@@ -112,6 +112,7 @@ for CHUNK_FILE in "$OUTPUT_DIR"/smart_chunk_*.wav; do
 	--latent_path "$CHUNK_LATENT_PATH" \
 	--context_parallel_size 4 \
 	--dit_subfolder base_model_int8_dmd_merged \
+	--seed "$RANDOM" \
 	--text_guidance_scale 2.0 \
 	--sequential_block_cpu_offload \
 	--block_offload_group_size 1
