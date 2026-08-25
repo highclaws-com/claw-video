@@ -1,0 +1,22 @@
+{
+  "name": "claw-video-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio src/index.ts --public-dir ..",
+    "render": "remotion render src/index.ts VideoWithSubtitles ../output/2136-subtitled.mp4 --public-dir .."
+  },
+  "dependencies": {
+    "@remotion/captions": "4.0.516",
+    "@remotion/cli": "4.0.516",
+    "@remotion/studio": "4.0.516",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remotion": "4.0.516"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "typescript": "7.0.2"
+  }
+}
