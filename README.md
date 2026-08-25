@@ -43,6 +43,159 @@ cd clearer-voice
 python cli.py /path/to/input.mp3 /path/to/output.mp3
 ```
 
+## Generate subtitles and load a new video in Remotion
+
+The Remotion project uses files from the repository root as static assets. The
+video and subtitle file can have any name, but the names and video metadata must
+be updated in the Remotion source before previewing or rendering.
+
+### 1. Inspect the new video
+
+Place the MP4 in the repository root, then inspect its width, height, frame rate,
+duration, and frame count. Replace `my-video.mp4` with the actual filename:
+
+```bash
+ffprobe -v error -select_streams v:0 \
+  -show_entries stream=width,height,r_frame_rate,duration,nb_frames \
+  -of default=noprint_wrappers=1 \
+  "my-video.mp4"
+```
+
+The output looks similar to:
+
+```text
+width=1080
+height=1920
+r_frame_rate=30/1
+duration=181.366667
+nb_frames=5441
+```
+
+Use `nb_frames` as the Remotion `durationInFrames` value. If `nb_frames` is not
+available, calculate it with:
+
+```text
+durationInFrames = ceil(duration in seconds * fps)
+```
+
+Always round up so the end of the video is not cut off.
+
+### 2. Generate an SRT file with local Whisper
+
+The local Whisper script accepts an MP4 directly, so extracting a separate audio
+file is not required. For Chinese audio, run:
+
+```bash
+python3 whisper-asr/extract_srt.py \
+  --audio "my-video.mp4" \
+  --model "/home/tk/.cache/whisper/base.pt" \
+  --output_file "my-video.srt" \
+  --language zh
+```
+
+Available local models can be listed with:
+
+```bash
+ls ~/.cache/whisper
+```
+
+Use a larger model when it is available and valid for better recognition. For
+example:
+
+```bash
+python3 whisper-asr/extract_srt.py \
+  --audio "my-video.mp4" \
+  --model "/home/tk/.cache/whisper/large-v3-turbo.pt" \
+  --output_file "my-video.srt" \
+  --language zh
+```
+
+If Whisper reports `failed finding central directory`, the selected model file
+is incomplete or damaged. Use another cached model or download that model again.
+
+Open the generated SRT and correct recognition errors against the original
+script or transcript. Keep the subtitle numbers and timestamps unchanged unless
+the timing is also wrong.
+
+### 3. Point Remotion at the new files
+
+Edit `remotion/src/VideoWithSubtitles.tsx` and replace the current asset names:
+
+```tsx
+const [handle] = useState(() => delayRender('Loading my-video.srt'));
+
+fetch(staticFile('my-video.srt'))
+
+<OffthreadVideo src={staticFile('my-video.mp4')} />
+```
+
+In the existing component these expressions appear in different parts of the
+file. Only replace the filename strings; keep the surrounding loading and error
+handling code.
+
+Edit `remotion/src/Root.tsx` with the values returned by `ffprobe`:
+
+```tsx
+<Composition
+  id="VideoWithSubtitles"
+  component={VideoWithSubtitles}
+  durationInFrames={5441}
+  fps={30}
+  width={1080}
+  height={1920}
+/>
+```
+
+For a frame rate such as `30000/1001`, use the decimal value:
+
+```tsx
+fps={30000 / 1001}
+```
+
+### 4. Preview in Remotion Studio
+
+Install dependencies once:
+
+```bash
+cd remotion
+npm install
+```
+
+Start the Studio:
+
+```bash
+npm start
+```
+
+Open the URL printed in the terminal and select `VideoWithSubtitles`. Source code
+changes normally reload automatically. Changes to an SRT static asset may require
+a browser refresh. If the old subtitle remains cached, stop Studio with `Ctrl+C`
+and run `npm start` again.
+
+The subtitle position and style are in
+`remotion/src/VideoWithSubtitles.tsx`. In particular:
+
+```tsx
+bottom: 200,
+```
+
+A larger `bottom` value moves the subtitle up; a smaller value moves it down.
+
+### 5. Render the final video
+
+From the `remotion` directory, render the composition and choose an output name:
+
+```bash
+npx remotion render \
+  src/index.ts \
+  VideoWithSubtitles \
+  ../output/my-video-subtitled.mp4 \
+  --public-dir ..
+```
+
+The rendered MP4 contains hard subtitles. Keep the original SRT separately if a
+player-selectable subtitle track is also needed.
+
 ## SSHFS mount
 
 ```bash
