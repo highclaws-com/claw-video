@@ -10,15 +10,16 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import {subtitleFile, videoFile} from './video-config';
 
 export const VideoWithSubtitles = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const [subtitles, setSubtitles] = useState<Caption[]>([]);
-  const [handle] = useState(() => delayRender('Loading 2136.srt'));
+  const [handle] = useState(() => delayRender(`Loading ${subtitleFile}`));
 
   useEffect(() => {
-    fetch(staticFile('2136.srt'))
+    fetch(staticFile(subtitleFile))
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Could not load subtitles: ${response.status}`);
@@ -42,7 +43,7 @@ export const VideoWithSubtitles = () => {
   return (
     <AbsoluteFill style={{backgroundColor: '#000'}}>
       <OffthreadVideo
-        src={staticFile('2136.mp4')}
+        src={staticFile(videoFile)}
         style={{height: '100%', width: '100%', objectFit: 'cover'}}
       />
 
@@ -58,17 +59,28 @@ export const VideoWithSubtitles = () => {
             textAlign: 'center',
             fontFamily:
               '"Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
-            fontSize: 58,
+            fontSize: 54,
             fontWeight: 700,
             lineHeight: 1.35,
             color: '#fff',
-            WebkitTextStroke: '3px #000',
+            WebkitTextStroke: '1.5px rgba(0, 0, 0, 0.85)',
             paintOrder: 'stroke fill',
             textShadow: '0 4px 12px rgba(0, 0, 0, 0.75)',
             whiteSpace: 'pre-wrap',
           }}
         >
-          {subtitle.text}
+          <span
+            style={{
+              padding: '18px 30px 20px',
+              borderRadius: 24,
+              background: 'rgba(8, 10, 15, 0.78)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              boxShadow: '0 10px 32px rgba(0, 0, 0, 0.38)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {subtitle.text}
+          </span>
         </div>
       ) : null}
     </AbsoluteFill>

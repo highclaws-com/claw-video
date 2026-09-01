@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "remotion studio src/index.ts --public-dir ..",
-    "render": "remotion render src/index.ts VideoWithSubtitles ../output/2136-subtitled.mp4 --public-dir .."
+    "render": "remotion render src/index.ts VideoWithSubtitles ../output/rendered.mp4 --public-dir .."
   },
   "dependencies": {
     "@remotion/captions": "4.0.516",

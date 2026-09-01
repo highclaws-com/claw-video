@@ -1,15 +1,16 @@
 import {Composition} from 'remotion';
 import {VideoWithSubtitles} from './VideoWithSubtitles';
+import {videoConfig} from './video-config';
 
 export const RemotionRoot = () => {
   return (
     <Composition
       id="VideoWithSubtitles"
       component={VideoWithSubtitles}
-      durationInFrames={5441}
-      fps={30}
-      width={1080}
-      height={1920}
+      durationInFrames={videoConfig.durationInFrames}
+      fps={videoConfig.fps}
+      width={videoConfig.width}
+      height={videoConfig.height}
     />
   );
 };

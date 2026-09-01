@@ -45,9 +45,9 @@ python cli.py /path/to/input.mp3 /path/to/output.mp3
 
 ## Generate subtitles and load a new video in Remotion
 
-The Remotion project uses files from the repository root as static assets. The
-video and subtitle file can have any name, but the names and video metadata must
-be updated in the Remotion source before previewing or rendering.
+The Remotion project uses files from the repository root as static assets. Give
+the MP4 and SRT the same basename, then update the single configuration file
+`remotion/src/video-config.ts` before previewing or rendering.
 
 ### 1. Inspect the new video
 
@@ -117,33 +117,19 @@ Open the generated SRT and correct recognition errors against the original
 script or transcript. Keep the subtitle numbers and timestamps unchanged unless
 the timing is also wrong.
 
-### 3. Point Remotion at the new files
+### 3. Configure Remotion for the new video
 
-Edit `remotion/src/VideoWithSubtitles.tsx` and replace the current asset names:
-
-```tsx
-const [handle] = useState(() => delayRender('Loading my-video.srt'));
-
-fetch(staticFile('my-video.srt'))
-
-<OffthreadVideo src={staticFile('my-video.mp4')} />
-```
-
-In the existing component these expressions appear in different parts of the
-file. Only replace the filename strings; keep the surrounding loading and error
-handling code.
-
-Edit `remotion/src/Root.tsx` with the values returned by `ffprobe`:
+Edit only `remotion/src/video-config.ts`. Set `basename` without the `.mp4` or
+`.srt` extension, and use the values returned by `ffprobe`:
 
 ```tsx
-<Composition
-  id="VideoWithSubtitles"
-  component={VideoWithSubtitles}
-  durationInFrames={5441}
-  fps={30}
-  width={1080}
-  height={1920}
-/>
+export const videoConfig = {
+  basename: 'my-video',
+  durationInFrames: 5441,
+  fps: 30,
+  width: 1080,
+  height: 1920,
+} as const;
 ```
 
 For a frame rate such as `30000/1001`, use the decimal value:
@@ -183,15 +169,15 @@ A larger `bottom` value moves the subtitle up; a smaller value moves it down.
 
 ### 5. Render the final video
 
-From the `remotion` directory, render the composition and choose an output name:
+From the `remotion` directory, render the composition:
 
 ```bash
-npx remotion render \
-  src/index.ts \
-  VideoWithSubtitles \
-  ../output/my-video-subtitled.mp4 \
-  --public-dir ..
+npm run render
 ```
+
+The stable output path is `output/rendered.mp4`. To choose a different output
+name for a one-off render, use the full `npx remotion render` command and pass the
+desired path explicitly.
 
 The rendered MP4 contains hard subtitles. Keep the original SRT separately if a
 player-selectable subtitle track is also needed.
