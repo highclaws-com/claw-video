@@ -167,6 +167,31 @@ bottom: 200,
 
 A larger `bottom` value moves the subtitle up; a smaller value moves it down.
 
+### Optional: Cover sensitive phone status information
+
+For a `1080x1920` phone recording with sensitive status-bar information, add
+this immediately after `OffthreadVideo` in
+`remotion/src/VideoWithSubtitles.tsx`:
+
+```tsx
+<OffthreadVideo
+  src={staticFile(videoFile)}
+  style={{height: '100%', width: '100%', objectFit: 'cover'}}
+/>
+
+<div
+  style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 62,
+    backgroundColor: '#000',
+    zIndex: 10,
+  }}
+/>
+```
+
 ### 5. Render the final video
 
 From the `remotion` directory, render the composition:
