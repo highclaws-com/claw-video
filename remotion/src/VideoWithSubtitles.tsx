@@ -10,7 +10,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
-import {subtitleFile, videoFile} from './video-config';
+import {subtitleFile, subtitleLayout, videoFile} from './video-config';
 
 export const VideoWithSubtitles = () => {
   const frame = useCurrentFrame();
@@ -51,15 +51,15 @@ export const VideoWithSubtitles = () => {
         <div
           style={{
             position: 'absolute',
-            left: 72,
-            right: 72,
-            bottom: 200,
+            left: subtitleLayout.sideMargin,
+            right: subtitleLayout.sideMargin,
+            bottom: subtitleLayout.bottom,
             display: 'flex',
             justifyContent: 'center',
             textAlign: 'center',
             fontFamily:
               '"Noto Sans CJK SC", "Microsoft YaHei", sans-serif',
-            fontSize: 54,
+            fontSize: subtitleLayout.fontSize,
             fontWeight: 700,
             lineHeight: 1.35,
             color: '#fff',

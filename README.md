@@ -113,9 +113,10 @@ python3 whisper-asr/extract_srt.py \
 If Whisper reports `failed finding central directory`, the selected model file
 is incomplete or damaged. Use another cached model or download that model again.
 
-Open the generated SRT and correct recognition errors against the original
-script or transcript. Keep the subtitle numbers and timestamps unchanged unless
-the timing is also wrong.
+Correct the SRT against the input MP4, which is the ground truth: subtitles
+must match what is spoken in it, with its own timing. `output/speech.srt` is
+the original script but may include lines cut from the video, so use it only
+to fix wording.
 
 ### 3. Configure Remotion for the new video
 
@@ -138,6 +139,10 @@ For a frame rate such as `30000/1001`, use the decimal value:
 fps={30000 / 1001}
 ```
 
+Also set `subtitleLayout` (`bottom`, `sideMargin`, `fontSize`) whenever the
+frame changes, so subtitles sit inside the visible picture and clear of
+overlays.
+
 ### 4. Preview in Remotion Studio
 
 Install dependencies once:
@@ -157,13 +162,6 @@ Open the URL printed in the terminal and select `VideoWithSubtitles`. Source cod
 changes normally reload automatically. Changes to an SRT static asset may require
 a browser refresh. If the old subtitle remains cached, stop Studio with `Ctrl+C`
 and run `npm start` again.
-
-The subtitle position and style are in
-`remotion/src/VideoWithSubtitles.tsx`. In particular:
-
-```tsx
-bottom: 200,
-```
 
 A larger `bottom` value moves the subtitle up; a smaller value moves it down.
 
