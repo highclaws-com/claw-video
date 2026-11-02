@@ -4,6 +4,11 @@ same arguments, same chunk_NNN.wav previews, same output file.
 
   python drama3-tts/clone.py --text_file drama3-tts/input-long.txt --language Chinese \
       --ref_audio drama3-tts/ref.mp3 --ref_text drama3-tts/ref.txt --output output/speech.wav
+
+Emotion: the text is passed to Drama 3 unchanged, so its native inline [tags] work anywhere:
+
+  [埋怨中带点愤怒] 你去哪里了，why you come back so late!
+  算了，[sighs] 就这样吧。[laughs]
 """
 import argparse
 import os

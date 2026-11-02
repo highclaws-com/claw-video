@@ -123,14 +123,31 @@ after another, so there's no conflict.
 
 ## Emotion and delivery tags
 
-Drama 3 understands tags in square brackets written into the text. Chinese descriptions worked
-better than short English tags in our tests, except for whispering:
+`clone.py` passes the input text to Drama 3 unchanged, so you write emotion directly into
+`input-long.txt` in Drama 3's own `[...]` tag format. There's no extra syntax to learn. A tag
+can go anywhere in a paragraph and affects the speech that follows it:
 
 ```text
-[用非常愤怒的语气大声说，语气激烈]你到底有没有在听我说话？
-[whisper]这件事千万别告诉别人。
-[sighs] 算了，就这样吧。[laughs]
+[埋怨中带点愤怒] 你去哪里了，why you come back so late!
+
+[whisper] 这件事千万别告诉别人。
+
+算了，[sighs] 就这样吧。[laughs]
 ```
+
+- **What can go in a tag:** free-form descriptions in Chinese or English, such as
+  `[埋怨中带点愤怒]` or `[用非常愤怒的语气大声说]`. Short event tags work too, e.g.
+  `[sighs]`, `[laughs]`, `[whisper]`, `[pause]`, `[emphasis]`.
+- **Which works better:** in our tests, Chinese descriptions worked better than short English
+  emotion tags. The exception was whispering, where `[whisper]` worked best.
+- **Scope:** a tag affects the paragraph it's in, because each blank-line-separated paragraph is
+  generated on its own. To use an emotion again in a later paragraph, write the tag again.
+- **Long paragraphs:** Drama 3 cuts any paragraph over about 300 bytes (about 100 Chinese
+  characters) into pieces and generates them one after another. Each piece hears the previous
+  one, but the tag text itself only goes to the first piece. Keep emotional paragraphs short,
+  or repeat the tag partway through.
+- **Use `[...]`, not `(...)`.** Drama 3 has no special meaning for parentheses and will
+  probably read them aloud.
 
 The tags work on some seeds and not others, so treat them as a hint and regenerate if a line
 doesn't land. The reference clip's own delivery (`ref.mp3` sounds fairly sad) also pulls every
