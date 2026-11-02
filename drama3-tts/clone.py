@@ -87,6 +87,37 @@ def main():
         help="Optional random seed for reproducible output"
     )
 
+    # Defaults are the settings on Drama 3's model card (temperature 1.0, top_p 0.9, top_k 30).
+    # fish-speech's own defaults (0.7 / 0.7 / 30) mostly flattened the [emotion] tags.
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=1.0,
+        help="Sampling temperature (default 1.0; fish-speech uses 0.7). Higher = more expressive, "
+             "less stable"
+    )
+
+    parser.add_argument(
+        "--top_p",
+        type=float,
+        default=0.9,
+        help="Nucleus sampling top-p (default 0.9; fish-speech uses 0.7)"
+    )
+
+    parser.add_argument(
+        "--top_k",
+        type=int,
+        default=30,
+        help="Top-k cap (default 30); 0 = no cap, only with --reference_sampling"
+    )
+
+    parser.add_argument(
+        "--reference_sampling",
+        action="store_true",
+        help="Use Fish Audio's reference sampling for Drama 3 (epsilon cutoff + repetition "
+             "replacement). Upstream recommends it with --temperature 1.0 --top_p 1.0 --top_k 0"
+    )
+
     args = parser.parse_args()
     output_dir = os.path.dirname(args.output)
 
@@ -104,7 +135,10 @@ def main():
         sys.exit(f"Drama 3 checkpoint not found at {checkpoint}; see drama3-tts/README.md")
 
     print("Loading Drama 3...")
-    model, _ = init_model(checkpoint, args.device, torch.bfloat16)
+    model, _ = init_model(
+        checkpoint, args.device, torch.bfloat16,
+        reference_sampling="argmax" if args.reference_sampling else None,
+    )
     device = str(model.device)  # the last GPU: audio decoder and codec live here
     codec = load_codec_model(checkpoint / "codec.pth", device, model.dtype)
 
@@ -132,6 +166,7 @@ def main():
             r.codes for r in generate_long(
                 model=model, device=device, decode_one_token=None, text=line,
                 max_new_tokens=0,  # 0 = Drama 3's own per-chunk budget
+                temperature=args.temperature, top_p=args.top_p, top_k=args.top_k,
                 prompt_text=[ref_text], prompt_tokens=[ref_codes],
             ) if r.action == "sample"
         ]

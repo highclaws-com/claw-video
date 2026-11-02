@@ -89,6 +89,9 @@ paragraph, delete its `chunk_NNN.wav` and rerun.
   holds the audio decoder and codec.
 - `--seed N`: makes the output reproducible.
 - `--checkpoint DIR`: use a different checkpoint folder.
+- `--temperature` / `--top_p` / `--top_k`: sampling settings, default `1.0` / `0.9` / `30`.
+  See "Sampling settings" below.
+- `--reference_sampling`: switch to Fish's own Drama 3 sampling mode instead.
 
 ### GPUs on this machine
 
@@ -152,6 +155,20 @@ can go anywhere in a paragraph and affects the speech that follows it:
 The tags work on some seeds and not others, so treat them as a hint and regenerate if a line
 doesn't land. The reference clip's own delivery (`ref.mp3` sounds fairly sad) also pulls every
 line toward that tone. Strong emotion moves the voice slightly away from the reference.
+
+### Sampling settings
+
+`clone.py` defaults to temperature 1.0, top_p 0.9, top_k 30, which are the settings on the
+Drama 3 model card. We compared three settings on the tagged `input-long.txt`:
+
+| Setting | Flags | Result |
+|---|---|---|
+| fish-speech default | `--temperature 0.7 --top_p 0.7` | Flat. Only `[laughs]` came through clearly |
+| **Model card (our default)** | none | Most expressive. Sigh, whisper and laugh all came through |
+| Fish reference sampling | `--reference_sampling --temperature 1.0 --top_p 1.0 --top_k 0` | Flatter than the default, and the laugh dropped out |
+
+Higher temperature makes the delivery more expressive, but also less stable. If a line comes
+out garbled or strange, delete its `chunk_NNN.wav` and rerun, or lower `--temperature`.
 
 ## License
 
