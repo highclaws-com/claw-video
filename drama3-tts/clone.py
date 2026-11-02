@@ -1,6 +1,6 @@
 """
-Voice cloning with Fish Audio Drama 3. Drop-in replacement for qwen-tts/clone.py:
-same arguments, same chunk_NNN.wav previews, same output file.
+Voice cloning with Fish Audio Drama 3. Writes one chunk_NNN.wav per paragraph next to the
+output file, then the joined output.
 
   python drama3-tts/clone.py --text_file drama3-tts/input-long.txt --language Chinese \
       --ref_audio drama3-tts/ref.mp3 --ref_text drama3-tts/ref.txt --output output/speech.wav
@@ -55,7 +55,7 @@ def main():
         "--language",
         type=str,
         default="English",
-        help="Kept for compatibility with qwen-tts/clone.py; Drama 3 detects the language from the text"
+        help="Accepted but ignored; Drama 3 detects the language from the text"
     )
 
     parser.add_argument(

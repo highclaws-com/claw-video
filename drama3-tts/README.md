@@ -1,8 +1,7 @@
 # drama3-tts
 
 Voice cloning with [Fish Audio Drama 3](https://huggingface.co/fishaudio/drama-3)
-(`fishaudio/drama-3`). `clone.py` works as a drop-in replacement for `qwen-tts/clone.py`: it
-takes the same arguments, reads the same input files, and writes the same outputs.
+(`fishaudio/drama-3`).
 
 Drama 3 is a 35B-A3B MoE model (3B parameters active per token). It needs about 41 GB of
 GPU memory in FP8, so `clone.py` splits it across four 16 GB GPUs.
@@ -11,7 +10,7 @@ GPU memory in FP8, so `clone.py` splits it across four 16 GB GPUs.
 
 ```text
 drama3-tts/
-├── clone.py           # TTS script (same CLI as qwen-tts/clone.py)
+├── clone.py           # TTS script
 ├── requirements.txt   # extra pip packages
 ├── fish-speech/       # git submodule: github.com/fishaudio/fish-speech (inference code)
 ├── checkpoints/       # model weights, git-ignored, downloaded in step 3
@@ -57,8 +56,6 @@ The repo ships its own `codec.pth`, so you don't need the S2-Pro checkpoint.
 
 ## Generate TTS
 
-Same arguments as `qwen-tts/clone.py`:
-
 ```bash
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 CUDA_VISIBLE_DEVICES=0,1,3,4 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
@@ -72,10 +69,9 @@ python drama3-tts/clone.py \
 - `--text_file`: the text to speak. Separate paragraphs with a blank line; each paragraph is
   generated as one chunk.
 - `--ref_audio`: a 5–15 s clip of the target voice.
-- `--ref_text`: the exact transcript of that clip. Unlike Qwen, Drama 3 always needs it,
-  because it has no speaker-embedding-only mode.
-- `--language`: accepted only so existing commands keep working. Drama 3 detects the
-  language from the text.
+- `--ref_text`: the exact transcript of that clip. Required, because Drama 3 has no
+  speaker-embedding-only mode.
+- `--language`: accepted but ignored. Drama 3 detects the language from the text.
 
 **Outputs**
 - `output/chunk_001.wav`, `chunk_002.wav`, …: one file per paragraph, at 44.1 kHz mono.
@@ -103,26 +99,6 @@ image is available`. Use the four RTX 4070 Ti SUPERs: 0, 1, 3, 4.
 Peak memory is about 11.7 / 11.5 / 11.6 / 6.2 GB on the four GPUs. Generation runs at about
 8.5 frames/s (one frame is about 47 ms of audio), so speech takes roughly 2.4× its own length
 to generate.
-
-## Switching gen.sh from Qwen to Drama 3
-
-In the TTS step of `gen.sh`, replace the `qwen-tts/clone.py` call with:
-
-```bash
-	CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0,1,3,4 \
-	PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-	python drama3-tts/clone.py \
-	--text_file drama3-tts/input-long.txt --language Chinese \
-	--ref_audio "$TTS_REF_AUDIO" --ref_text "$TTS_REF_TEXT" \
-	--output "$OUTPUT_DIR/speech.wav"
-```
-
-The rest of the pipeline (loudnorm, Whisper SRT, chunk split) reads `output/speech.wav` as it
-did before. Drama 3 writes 44.1 kHz audio and Qwen writes 24 kHz. Nothing later in the pipeline
-depends on the sample rate.
-
-Drama 3 uses the same four GPUs (0,1,3,4) as the avatar step later in `gen.sh`. The steps run one
-after another, so there's no conflict.
 
 ## Emotion and delivery tags
 

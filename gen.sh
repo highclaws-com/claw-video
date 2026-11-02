@@ -15,10 +15,18 @@ mkdir -p "$OUTPUT_DIR"
 if [ -f "$OUTPUT_DIR/speech.wav" ]; then
 	echo "Skip TTS: speech.wav already exists"
 else
-	CUDA_VISIBLE_DEVICES=2 python qwen-tts/clone.py \
-	--text_file qwen-tts/input-long.txt --language Chinese \
+	CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0,1,3,4 \
+	PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+	python drama3-tts/clone.py \
+	--text_file drama3-tts/input-long.txt --language Chinese \
 	--ref_audio "$TTS_REF_AUDIO" --ref_text "$TTS_REF_TEXT" \
 	--output "$OUTPUT_DIR/speech.wav"
+
+
+	# CUDA_VISIBLE_DEVICES=2 python qwen-tts/clone.py \
+	# --text_file qwen-tts/input-long.txt --language Chinese \
+	# --ref_audio "$TTS_REF_AUDIO" --ref_text "$TTS_REF_TEXT" \
+	# --output "$OUTPUT_DIR/speech.wav"
 fi
 
 # Normalize loudness
